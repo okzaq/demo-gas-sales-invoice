@@ -110,6 +110,22 @@ function createInvoices(month: string, customerCode: string): CreateInvoicesResu
   }
 }
 
+/**
+ * エディタから実行する用: 直近の請求月で全取引先分の請求書 PDF を作り、月次集計も更新して結果をログに出す。
+ * 複数の Google アカウントでログインしたブラウザでは、ダイアログ（google.script.run）が応答しないことがあるため、
+ * その場合はエディタでこの関数を実行する。
+ */
+function createAllInvoicesFromEditor(): void {
+  const month = getDialogData().defaultMonth;
+  const r = createInvoices(month, "ALL");
+  updateSummarySheet();
+  console.log(`${r.monthLabel}: 作成 ${r.created.length}件 / 売上なし ${r.skipped.length}件 / 時間切れで未作成 ${r.notDone.length}件`);
+  r.created.forEach((c) => console.log(`作成: ${c.name} ${c.total.toLocaleString()}円 ${c.fileName}`));
+  if (r.skipped.length > 0) console.log(`売上なし: ${r.skipped.join("、")}`);
+  if (r.notDone.length > 0) console.log(`未作成（もう一度実行すると続きを作る）: ${r.notDone.join("、")}`);
+  if (r.folderUrl) console.log(`保存先: ${r.folderUrl}`);
+}
+
 function updateSummarySheet(): void {
   const data = loadData();
   const pivots = buildMonthlySummary(data.lines, data.customers, data.products);
