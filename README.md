@@ -7,8 +7,11 @@ Excel で回している「売上の入力 → 月末の請求書作成 → 月�
 Google Apps Script（GAS）に置き換えるデモです。売上をプルダウンで入力し、メニューから
 **締め日・掛率・税率ごとの消費税を反映した請求書 PDF を Google ドライブに一括作成**できます。
 
-**デモURL**: 【公開後に記入】
-（リンクを開くと「コピーを作成」の画面になります。自分の Google ドライブにコピーして、メニュー「請求業務」から操作できます）
+**デモURL（閲覧）**: https://docs.google.com/spreadsheets/d/18zsr1G5ePRxiuqaB621Ynl4qgSIzL_1mFeTKwze2ocQ/edit?usp=sharing
+（ログイン不要で、9月分を作成済みの「請求書」「月次集計」シートまで見られます）
+
+**自分で動かして試す**: https://docs.google.com/spreadsheets/d/18zsr1G5ePRxiuqaB621Ynl4qgSIzL_1mFeTKwze2ocQ/copy
+（Google アカウントでログインすると「コピーを作成」の画面になります。自分の Google ドライブにコピーして、メニュー「請求業務」から操作できます）
 
 ## 何ができるか
 
