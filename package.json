@@ -1,0 +1,31 @@
+{
+  "name": "demo-gas-sales-invoice",
+  "version": "0.1.0",
+  "description": "Excel の売上・請求業務を Google スプレッドシート + GAS に置き換える自主制作デモ（TypeScript + Jest + clasp）",
+  "scripts": {
+    "test": "jest",
+    "typecheck": "tsc -p tsconfig.json",
+    "build:gas": "tsc -p tsconfig.gas.json && node scripts/copy-appsscript.cjs",
+    "clasp:apply": "node scripts/apply-clasp-env.cjs",
+    "postinstall": "node scripts/apply-clasp-env.cjs dev",
+    "push": "npm run clean && npm run build:gas && npm run clasp:apply -- dev && clasp push --force",
+    "push:prod": "npm run clean && npm run build:gas && npm run clasp:apply -- prod && clasp push --force",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "pull": "npm run clasp:apply -- dev && clasp pull",
+    "pull:prod": "npm run clasp:apply -- prod && clasp pull",
+    "open": "npm run clasp:apply -- dev && clasp open",
+    "open:prod": "npm run clasp:apply -- prod && clasp open",
+    "login": "clasp login"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.3.0",
+    "@types/google-apps-script": "^2.0.8",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.5.2",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9",
+    "typescript": "^5.9.3"
+  },
+  "private": true,
+  "license": "MIT"
+}
