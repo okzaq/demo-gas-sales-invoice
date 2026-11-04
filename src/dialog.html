@@ -31,93 +31,99 @@
     <div id="status"></div>
 
     <script>
-      var MODE = document.body.getAttribute("data-mode");
-      var run = document.getElementById("run");
-      var status = document.getElementById("status");
+      // スクリプト全体を即時関数で囲み、変数をグローバル（window）に出さない。
+      // グローバルに `var status` を置くと組み込みの window.status（代入値を文字列にする）と衝突し、
+      // 結果表示の status.appendChild が失敗してダイアログが止まるため。
+      (function () {
+        "use strict";
+        var MODE = document.body.getAttribute("data-mode");
+        var run = document.getElementById("run");
+        var statusEl = document.getElementById("status");
 
-      if (MODE === "all") {
-        document.getElementById("customerBlock").style.display = "none";
-        run.textContent = "全取引先分のPDFを作成";
-      }
+        if (MODE === "all") {
+          document.getElementById("customerBlock").style.display = "none";
+          run.textContent = "全取引先分のPDFを作成";
+        }
 
-      function option(value, label) {
-        var o = document.createElement("option");
-        o.value = value;
-        o.textContent = label;
-        return o;
-      }
+        function option(value, label) {
+          var o = document.createElement("option");
+          o.value = value;
+          o.textContent = label;
+          return o;
+        }
 
-      function showError(e) {
-        status.className = "error";
-        status.textContent = (e && e.message) || String(e);
-        run.disabled = false;
-      }
+        function showError(e) {
+          statusEl.className = "error";
+          statusEl.textContent = (e && e.message) || String(e);
+          run.disabled = false;
+        }
 
-      google.script.run
-        .withSuccessHandler(function (data) {
-          var month = document.getElementById("month");
-          month.innerHTML = "";
-          data.months.forEach(function (m) { month.appendChild(option(m.value, m.label)); });
-          month.value = data.defaultMonth;
-          var customer = document.getElementById("customer");
-          data.customers.forEach(function (c) { customer.appendChild(option(c.code, c.code + "  " + c.name)); });
-          run.disabled = data.months.length === 0;
-          if (data.months.length === 0) status.textContent = "売上入力にデータがありません。";
-        })
-        .withFailureHandler(showError)
-        .getDialogData();
-
-      run.addEventListener("click", function () {
-        var month = document.getElementById("month").value;
-        var customer = MODE === "all" ? "ALL" : document.getElementById("customer").value;
-        run.disabled = true;
-        status.className = "";
-        status.textContent = "作成中です…（1件あたり数秒かかります）";
         google.script.run
-          .withSuccessHandler(function (r) {
-            status.innerHTML = "";
-            var head = document.createElement("div");
-            head.textContent = r.monthLabel + ": " + r.created.length + "件作成しました。";
-            status.appendChild(head);
-            if (r.created.length > 0) {
-              var ul = document.createElement("ul");
-              r.created.forEach(function (c) {
-                var li = document.createElement("li");
-                var a = document.createElement("a");
-                a.href = c.url;
-                a.target = "_blank";
-                a.textContent = c.name;
-                var amount = document.createElement("span");
-                amount.className = "amount";
-                amount.textContent = "  ¥" + c.total.toLocaleString("ja-JP");
-                li.appendChild(a);
-                li.appendChild(amount);
-                ul.appendChild(li);
-              });
-              status.appendChild(ul);
-              var folder = document.createElement("a");
-              folder.href = r.folderUrl;
-              folder.target = "_blank";
-              folder.textContent = "保存先フォルダを開く";
-              status.appendChild(folder);
-            }
-            if (r.skipped.length > 0) {
-              var s = document.createElement("div");
-              s.className = "hint";
-              s.textContent = "対象期間の売上がないため作成しなかった取引先: " + r.skipped.join("、");
-              status.appendChild(s);
-            }
-            if (r.notDone.length > 0) {
-              var n = document.createElement("div");
-              n.className = "error";
-              n.textContent = "時間切れのため未作成（もう一度実行してください）: " + r.notDone.join("、");
-              status.appendChild(n);
-            }
-            run.disabled = false;
+          .withSuccessHandler(function (data) {
+            var month = document.getElementById("month");
+            month.innerHTML = "";
+            data.months.forEach(function (m) { month.appendChild(option(m.value, m.label)); });
+            month.value = data.defaultMonth;
+            var customer = document.getElementById("customer");
+            data.customers.forEach(function (c) { customer.appendChild(option(c.code, c.code + "  " + c.name)); });
+            run.disabled = data.months.length === 0;
+            if (data.months.length === 0) statusEl.textContent = "売上入力にデータがありません。";
           })
           .withFailureHandler(showError)
-          .createInvoices(month, customer);
-      });
+          .getDialogData();
+
+        run.addEventListener("click", function () {
+          var month = document.getElementById("month").value;
+          var customer = MODE === "all" ? "ALL" : document.getElementById("customer").value;
+          run.disabled = true;
+          statusEl.className = "";
+          statusEl.textContent = "作成中です…（1件あたり数秒かかります）";
+          google.script.run
+            .withSuccessHandler(function (r) {
+              statusEl.innerHTML = "";
+              var head = document.createElement("div");
+              head.textContent = r.monthLabel + ": " + r.created.length + "件作成しました。";
+              statusEl.appendChild(head);
+              if (r.created.length > 0) {
+                var ul = document.createElement("ul");
+                r.created.forEach(function (c) {
+                  var li = document.createElement("li");
+                  var a = document.createElement("a");
+                  a.href = c.url;
+                  a.target = "_blank";
+                  a.textContent = c.name;
+                  var amount = document.createElement("span");
+                  amount.className = "amount";
+                  amount.textContent = "  ¥" + c.total.toLocaleString("ja-JP");
+                  li.appendChild(a);
+                  li.appendChild(amount);
+                  ul.appendChild(li);
+                });
+                statusEl.appendChild(ul);
+                var folder = document.createElement("a");
+                folder.href = r.folderUrl;
+                folder.target = "_blank";
+                folder.textContent = "保存先フォルダを開く";
+                statusEl.appendChild(folder);
+              }
+              if (r.skipped.length > 0) {
+                var s = document.createElement("div");
+                s.className = "hint";
+                s.textContent = "対象期間の売上がないため作成しなかった取引先: " + r.skipped.join("、");
+                statusEl.appendChild(s);
+              }
+              if (r.notDone.length > 0) {
+                var n = document.createElement("div");
+                n.className = "error";
+                n.textContent = "時間切れのため未作成（もう一度実行してください）: " + r.notDone.join("、");
+                statusEl.appendChild(n);
+              }
+              run.disabled = false;
+            })
+            .withFailureHandler(showError)
+            .createInvoices(month, customer);
+        });
+      })();
     </script>
   </body>
 </html>
